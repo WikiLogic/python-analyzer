@@ -11,11 +11,15 @@ P.S. I have no idea what I'm doing.
 
  ---
 
- Full propagation can come later if at all.  
+Full propagation can come later if at all.  (it'd just be looping through axioms / roots however we defined those)
+
+Some ideas for propagation:
 
  - Marking propagation with propagation IDs: Generate an ID for each propagation run which is added to each claim/argument (they'll have a propagation ID array). Run the propagation but terminate a path whenever the current propagation ID is found.
  - Create a propagation node: for each claim/argument that is processed, create a link between it and the propagation node. Use to terminate propagation paths. This has the advantage of not bloating claim/argument nodes with a propagation array and also makes it easy to find out how much impact a claim / argument update had.
  - Hold an array of claim/argument IDs that have been processed in memory, check against it for propagation path termination. This should probably be the path to start with, when we get to a scale at which this becomes a problem, we'll hopefully have thought up something better.
+
+Going with the last idea:
 
 Now walk the tree. Do the smallest ids first
 While doing so, hold a few things in memory:
@@ -48,8 +52,4 @@ Whenever something is added / updated, this gets passed those things that change
 3. **Get** all the arguments this claim is used in.
 4. Select the argument with the smallest ID value (that isn't already in `propagation-termination`), it should already have been updated. Now go up from here.
 
-
-
-
-
-When multiple running simultainiously becomes a problem, 
+Had a think through: if there's a cycle we should be ok going up. But stepping over might become an infinitie issue. So how do we detect a cycle?
