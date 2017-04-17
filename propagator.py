@@ -1,4 +1,5 @@
 
+import sys
 import localconfig
 from neo4j.v1 import GraphDatabase, basic_auth
 
@@ -14,7 +15,7 @@ def print_claim_by_id(id):
                                  "RETURN claim.body", id=id):
                 print(record["claim.body"])
 
-print_claim_by_id(25)
+# print_claim_by_id(25)
 
 def propagate_from_a_claim(id):
     propagation_terminator.append(id)
@@ -38,3 +39,25 @@ def calculate_claim_state_from_arguments():
 
 def calculate_argument_state_from_claims():
     print("calculate state from argument")
+
+
+#basic command line arguments
+def main():
+    if len(sys.argv) != 3:
+        print('usage: ./propagator.py { --claim | --arg } nodeID')
+        sys.exit(1)
+    
+    nodeType = sys.argv[1]
+    nodeId = sys.argv[2]
+
+    if nodeType == '--claim':
+        print('starting from claim')
+        propagate_from_a_claim(nodeId)
+    elif nodeType == '--arg':
+        print('starting from argument')
+    else:
+        print('unknown option: ' + option)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
