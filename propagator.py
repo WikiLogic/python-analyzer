@@ -21,20 +21,35 @@ print_claim_by_id(25)
 def propagate_from_a_claim(id):
     """Beginning with a claim, propagate state updates upwards in the graph"""
     propagation_terminator.append(id) # save a reference to this claim
+    
     # get all the arguments this claim is used in 
     argsUsingThisClaim = get_arguments_using_claim(id)
-    print(argsUsingThisClaim)
+
+    # calculate the new states for each argument
+    for arg in argsUsingThisClaim:
+        newArgState = calculate_argument_state([50,50])
+        print(newArgState)
+    
+    # select the argument with the smallest id that's not in the propagation_terminator then pass it to propagate_from_an_argument
 
 
 def get_arguments_using_claim(claimId):
-    """Takes a claim ID and returns a list of argument tuples (id, state, [(premisState,)]) that use that claim"""
+    """Takes a claim ID and returns a list of argument tuples (argumentId, argumentState, [(premisState,)]) that use that claim"""
+    returnArgs = []
     with driver.session() as session:
         with session.begin_transaction() as db_transaction:
             for record in db_transaction.run("MATCH (claim:Claim)-[:USED_IN]->(argument:ArgGroup) "
-                                 "WHERE ID(claim) = {claimId} "
-                                 "RETURN argument", claimId=claimId):
-    return 1
+                "WHERE ID(claim) = {claimId} "
+                "RETURN argument", claimId=claimId):
+                returnArgs.append(('argumentId',25,[50,50]))
+    return returnArgs
 
+def calculate_argument_state(premisStates):
+    """Takes a list of states and calculates the argument state, which it then returns"""
+    return 50
+
+
+# below are probably going to go, they're just placeholders anyway
 def next_claim_to_propagate():
     print("get next claim to propagate")
 
