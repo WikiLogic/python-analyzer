@@ -4,24 +4,15 @@ import localconfig
 from neo4j.v1 import GraphDatabase, basic_auth
 
 uri = "bolt://localhost:7687"
-driver = GraphDatabase.driver(uri, auth=(localconfig.DBUSERNAME, localconfig.DBPASSWORD))
+driver = GraphDatabase.driver(uri, auth=basic_auth(localconfig.DBUSERNAME, localconfig.DBPASSWORD))
 
 propagation_terminator = [] # a list of claim/argument ids that have been updated in this propagation - so we don't update them twice / repeatedly
 
 
-def print_claim_by_id(id):
-    with driver.session() as session:
-        with session.begin_transaction() as tx:
-            for record in tx.run("MATCH (arg)-[]->(claim:Claim) "
-                                 "WHERE ID(claim) = {id} "
-                                 "RETURN claim.body", id=id):
-                print(record["claim.body"])
-
-# print_claim_by_id(25)
-
 def propagate_from_a_claim(id):
     """Beginning with a claim, propagate state updates upwards in the graph"""
-    propagation_terminator.append(id) # save a reference to this claim
+     # save a reference to this claim
+    propagation_terminator.append(id)
     
     # get all the arguments this claim is used in 
     argsUsingThisClaim = get_arguments_using_claim(id)
@@ -37,12 +28,19 @@ def propagate_from_a_claim(id):
 def get_arguments_using_claim(claimId):
     """Takes a claim ID and returns a list of argument tuples (argumentId, argumentState, [(premisState,)]) that use that claim"""
     returnArgs = []
-    with driver.session() as session:
-        with session.begin_transaction() as db_transaction:
-            for record in db_transaction.run("MATCH (claim:Claim)-[:USED_IN]->(argument:ArgGroup) "
-                "WHERE ID(claim) = {claimId} "
-                "RETURN argument", claimId=claimId):
-                returnArgs.append(('argumentId',25,[50,50]))
+    session = driver.session()
+    neoArgs = session.run("MATCH (claim:Claim)-[:USED_IN]->(argument:ArgGroup) "
+                          "WHERE ID(claim) = {claimId} "
+                          "RETURN argument", 
+                          claimId = int(claimId))
+                
+    for arg in neoArgs:
+        returnArgs.append(('argumentId',25,[50,50]))
+    
+    print('returning')
+    print(returnArgs)
+
+    session.close()
     return returnArgs
 
 def calculate_argument_state(premisStates):
@@ -80,7 +78,7 @@ def main():
     elif nodeType == '--arg':
         print('starting from argument')
     else:
-        print('unknown option: ' + option)
+        print('unknown option: ' + nodeType)
         sys.exit(1)
 
 if __name__ == "__main__":
