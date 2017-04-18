@@ -31,15 +31,14 @@ def get_arguments_using_claim(claimId):
     session = driver.session()
     neoArgs = session.run("MATCH (claim:Claim)-[:USED_IN]->(argument:ArgGroup) "
                           "WHERE ID(claim) = {claimId} "
-                          "RETURN argument", 
+                          "OPTIONAL MATCH (premis:Claim)-->(argument) "
+                          "WITH argument, {id: ID(premis), state: premis.state} AS premises "
+                          "RETURN {id: ID(argument), state: argument.state, premises: COLLECT(premises)} AS arguments ", 
                           claimId = int(claimId))
-                
     for arg in neoArgs:
+        print(arg.items())
         returnArgs.append(('argumentId',25,[50,50]))
     
-    print('returning')
-    print(returnArgs)
-
     session.close()
     return returnArgs
 
@@ -73,10 +72,9 @@ def main():
     nodeId = sys.argv[2]
 
     if nodeType == '--claim':
-        print('starting from claim')
         propagate_from_a_claim(nodeId)
     elif nodeType == '--arg':
-        print('starting from argument')
+        print('TODO: start from argument')
     else:
         print('unknown option: ' + nodeType)
         sys.exit(1)
